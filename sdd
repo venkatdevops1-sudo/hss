@@ -1,0 +1,87 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: ct-api-service
+  namespace: command-center
+  uid: e09a35f5-b3f7-49e4-9cb7-f5d71293378f
+  resourceVersion: '9355791'
+  creationTimestamp: '2024-11-06T05:50:08Z'
+  labels:
+    app: command-center
+    component: ct-api
+    tier: api
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: 'true'
+  finalizers:
+    - service.kubernetes.io/load-balancer-cleanup
+  managedFields:
+    - manager: cloud-controller-manager
+      operation: Update
+      apiVersion: v1
+      time: '2024-11-06T05:50:41Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:metadata:
+          f:finalizers:
+            .: {}
+            v:"service.kubernetes.io/load-balancer-cleanup": {}
+        f:status:
+          f:loadBalancer:
+            f:ingress: {}
+      subresource: status
+    - manager: Mozilla
+      operation: Update
+      apiVersion: v1
+      time: '2024-11-06T06:07:57Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:metadata:
+          f:annotations:
+            .: {}
+            f:service.beta.kubernetes.io/azure-load-balancer-internal: {}
+          f:labels:
+            .: {}
+            f:app: {}
+            f:component: {}
+            f:tier: {}
+        f:spec:
+          f:allocateLoadBalancerNodePorts: {}
+          f:externalTrafficPolicy: {}
+          f:internalTrafficPolicy: {}
+          f:ipFamilies: {}
+          f:ipFamilyPolicy: {}
+          f:ports:
+            .: {}
+            k:{"port":80,"protocol":"TCP"}:
+              .: {}
+              f:port: {}
+              f:protocol: {}
+              f:targetPort: {}
+          f:selector: {}
+          f:sessionAffinity: {}
+          f:type: {}
+spec:
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+      nodePort: 32255
+  selector:
+    app: command-center
+    component: ct-api
+    tier: api
+  clusterIP: 10.0.119.176
+  clusterIPs:
+    - 10.0.119.176
+  type: LoadBalancer
+  sessionAffinity: None
+  externalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  allocateLoadBalancerNodePorts: true
+  internalTrafficPolicy: Cluster
+status:
+  loadBalancer:
+    ingress:
+      - ip: 172.16.113.10
