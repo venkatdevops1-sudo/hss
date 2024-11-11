@@ -1,0 +1,32 @@
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: hello-world-ingress
+  namespace: command-center
+  uid: 79a01870-6b97-4282-a1ab-cf818f48e81b
+  resourceVersion: '86426132'
+  generation: 17
+  creationTimestamp: '2024-07-04T10:18:27Z'
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    kubectl.kubernetes.io/last-applied-configuration: >
+      {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"cert-manager.io/cluster-issuer":"letsencrypt","nginx.ingress.kubernetes.io/rewrite-target":"/$2","nginx.ingress.kubernetes.io/use-regex":"true"},"name":"hello-world-ingress","namespace":"command-center"},"spec":{"ingressClassName":"nginx","rules":[{"host":"command-center.eastus.cloudapp.azure.com","http":{"paths":[{"backend":{"service":{"name":"cc-ui-service","port":{"number":80}}},"path":"/(.*)","pathType":"ImplementationSpecific"}]}}],"tls":[{"hosts":["command-center.eastus.cloudapp.azure.com"],"secretName":"tls-secret"}]}}
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: 'true'
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - command-center.eastus.cloudapp.azure.com
+      secretName: tls-secret
+  rules:
+    - host: command-center.eastus.cloudapp.azure.com
+      http:
+        paths:
+          - path: /(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: cc-ui-service
+                port:
+                  number: 80
