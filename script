@@ -1,0 +1,58 @@
+*** Settings ***
+Library    RequestsLibrary
+Library    Collections
+Library    JSONLibrary
+Library    String
+Library    OperatingSystem
+
+*** Variables ***
+${windows_base_url}    https://it-infra-apis.cloud.uk.hsbc
+${windows_auth_token_pass}    ROTIUL2DLVdpbNSRTo1MEQ3LTlYMjEmFEMEZR
+
+*** Test Cases ***
+Test Windows API Response
+    Check Windows API Response
+
+*** Keywords ***
+Check Windows API Response
+    ${headers}=    Create Dictionary    Authorization=Basic ${windows_auth_token_pass}    Content-Type=application/json
+    Create Session    sessionId    ${windows_base_url}    headers=${headers}    verify=False
+    ${data}=    Create Dictionary    serverName=GBW201353385  # Hardcoded serverName for this test
+    
+    # Log and send POST request
+    Log To Console    "Sending POST request with data: ${data}"
+    ${response}=    POST On Session    sessionId    /tid-pa-os-health-check/api/v1/os-health-check-request    json=${data}    expected_status=201
+    Log To Console    "Response received: ${response.content}"
+    
+    ${parsed_response}=    To JSON    ${response.content}
+    
+    # Check Uptime
+    ${uptime}=    Get From Dictionary    ${parsed_response}    Uptime
+    Log To Console    "Uptime: ${uptime}"
+    Validate Uptime Is More Than 30 Minutes    ${uptime}
+    
+    # Check Agent Status
+    ${infra_tools_agent_status}=    Get From Dictionary    ${parsed_response}    InfraToolsAgentStatus
+    ${scom_agent}=    Evaluate    [agent for agent in ${infra_tools_agent_status} if agent['AgentName'] == 'SCOM Agent'][0]
+    Log To Console    "SCOM Agent Status: ${scom_agent}"
+    
+    Run Keyword If    '${scom_agent['ServiceStatus']}' == 'Running'    Log To Console    "SCOM Agent Service Status is Running"
+    Run Keyword If    '${scom_agent['ServiceStatus']}' != 'Running'    Fail    "SCOM Agent Service Status is not Running"
+
+*** Keywords ***
+Validate Uptime Is More Than 30 Minutes
+    [Arguments]    ${uptime}
+    ${uptime_parts}=    Split String    ${uptime}    ${SPACE}
+    ${days}=    0
+    ${hours}=    0
+    ${minutes}=    0
+    
+    FOR    ${part}    IN    @{uptime_parts}
+        Run Keyword If    '${part}' Ends With 'Day(s)'    Set Variable    ${days}    ${part[:-5]}
+        Run Keyword If    '${part}' Ends With 'hr'    Set Variable    ${hours}    ${part[:-2]}
+        Run Keyword If    '${part}' Ends With 'min'    Set Variable    ${minutes}    ${part[:-3]}
+    END
+    
+    ${total_minutes}=    Evaluate    ${days} * 24 * 60 + ${hours} * 60 + ${minutes}
+    Log To Console    "Total Uptime in Minutes: ${total_minutes}"
+    Run Keyword If    ${total_minutes} < 30    Fail    "Uptime is less than 30 minutes"
