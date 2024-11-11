@@ -1,12 +1,8 @@
 kind: Ingress
 apiVersion: networking.k8s.io/v1
 metadata:
-  name: hello-world-ingress
+  name: cc-ui-ingress
   namespace: command-center
-  uid: 79a01870-6b97-4282-a1ab-cf818f48e81b
-  resourceVersion: '86426132'
-  generation: 17
-  creationTimestamp: '2024-07-04T10:18:27Z'
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
     kubectl.kubernetes.io/last-applied-configuration: >
@@ -17,10 +13,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - command-center.eastus.cloudapp.azure.com
-      secretName: tls-secret
+        - command-center.bigindiahub.coke.com
+      secretName: tls-secrets
   rules:
-    - host: command-center.eastus.cloudapp.azure.com
+    - host: command-center.bigindiahub.coke.com
       http:
         paths:
           - path: /(.*)
