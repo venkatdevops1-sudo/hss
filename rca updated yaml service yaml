@@ -1,0 +1,24 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: rca-service
+  namespace: syren-rca
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: 'true'
+  finalizers:
+    - service.kubernetes.io/load-balancer-cleanup
+spec:
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  selector:
+    app: rca-web-service
+  type: LoadBalancer
+  sessionAffinity: None
+  externalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  allocateLoadBalancerNodePorts: true
+  internalTrafficPolicy: Cluster
