@@ -1,0 +1,54 @@
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: rca-ingress
+  namespace: syren-rca
+  uid: dedde1c5-a5bd-41c7-af31-fcb2a05dd55e
+  resourceVersion: '9769994'
+  generation: 1
+  creationTimestamp: '2024-11-07T05:28:34Z'
+  annotations:
+    appgw.ingress.kubernetes.io/use-private-ip: 'true'
+    cert-manager.io/cluster-issuer: letsencrypt
+    kubectl.kubernetes.io/last-applied-configuration: >
+      {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"appgw.ingress.kubernetes.io/use-private-ip":"true","cert-manager.io/cluster-issuer":"letsencrypt","kubernetes.io/ingress.class":"azure/application-gateway","nginx.ingress.kubernetes.io/rewrite-target":"/$2","nginx.ingress.kubernetes.io/use-regex":"true"},"name":"rca-ingress","namespace":"syren-rca"},"spec":{"rules":[{"host":"command-center.bigindiahub.coke.com","http":{"paths":[{"backend":{"service":{"name":"rca-service","port":{"number":80}}},"path":"/rca(/|$)(.*)","pathType":"Prefix"}]}}],"tls":[{"hosts":["command-center.bigindiahub.coke.com"],"secretName":"tls-secrets"}]}}
+    kubernetes.io/ingress.class: azure/application-gateway
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: 'true'
+  managedFields:
+    - manager: kubectl-client-side-apply
+      operation: Update
+      apiVersion: networking.k8s.io/v1
+      time: '2024-11-07T05:28:34Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:metadata:
+          f:annotations:
+            .: {}
+            f:appgw.ingress.kubernetes.io/use-private-ip: {}
+            f:cert-manager.io/cluster-issuer: {}
+            f:kubectl.kubernetes.io/last-applied-configuration: {}
+            f:kubernetes.io/ingress.class: {}
+            f:nginx.ingress.kubernetes.io/rewrite-target: {}
+            f:nginx.ingress.kubernetes.io/use-regex: {}
+        f:spec:
+          f:rules: {}
+          f:tls: {}
+spec:
+  tls:
+    - hosts:
+        - command-center.bigindiahub.coke.com
+      secretName: tls-secrets
+  rules:
+    - host: command-center.bigindiahub.coke.com
+      http:
+        paths:
+          - path: /rca(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: rca-service
+                port:
+                  number: 80
+status:
+  loadBalancer: {}
