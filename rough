@@ -1,1 +1,4 @@
 kubernetes.io/ingress.class: nginx
+
+
+sha256:91ed049f4e7f942f4b8bf2bb943ec9967005b8fefe15a8aa74641f1d01cc6c2c
