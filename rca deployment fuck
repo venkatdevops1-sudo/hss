@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rca-web-service
+  namespace: syren-rca
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rca-web-service
+  template:
+    metadata:
+      labels:
+        app: rca-web-service
+    spec:
+      tolerations:
+        - key: resource
+          operator: Exists
+          effect: NoSchedule
+      containers:
+      - name: rca
+        image: devscmct.azurecr.io/rca-web-service:1.0.3
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        env:
+        - name: SYREN_EXECUTION_MODE
+          value: "CLOUD"
+        resources:
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+      imagePullSecrets:
+        - name: acr-secret
+      nodeSelector:
+        agentpool: agentdefault
