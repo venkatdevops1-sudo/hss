@@ -8,41 +8,33 @@ ${TIMECREATED}               2024-11-21 09:26:30    # Hardcoded TimeCreated in U
 *** Test Cases ***
 Calculate Time Difference Between TimeCreated and Current Time
     [Documentation]    Calculate the time difference between a hardcoded 'TimeCreated'
-    ...                and the current time with a hardcoded timezone offset.
+    ...                and the current time, where the current time is converted to the server timezone.
 
     # Log hardcoded values
-    Log To Console    TimeCreated (UTC): ${TIMECREATED}
-    Log To Console    Server Timezone Offset: ${SERVER_TIMEZONE_OFFSET}
+    Log    [INFO] TimeCreated (UTC): ${TIMECREATED}
+    Log    [INFO] Server Timezone Offset: ${SERVER_TIMEZONE_OFFSET}
 
     # Calculate the time difference
     ${time_difference}    Calculate Time Difference    ${TIMECREATED}    ${SERVER_TIMEZONE_OFFSET}
 
-    # Log the final result to console
-    Log To Console    The time difference between 'TimeCreated' (${TIMECREATED}) and the current time in the server timezone (offset: ${SERVER_TIMEZONE_OFFSET}) is: ${time_difference} seconds.
+    # Log the final result
+    Log    [INFO] The time difference between 'TimeCreated' (${TIMECREATED}) and the current time in the server timezone (offset: ${SERVER_TIMEZONE_OFFSET}) is: ${time_difference} seconds.
 
 *** Keywords ***
 Calculate Time Difference
     [Arguments]    ${time_created}    ${timezone_offset}
-    [Documentation]    Converts 'TimeCreated' to the server timezone using a fixed offset
-    ...                and calculates the time difference in seconds.
+    [Documentation]    Converts the current time to the server timezone and calculates the time difference
+    ...                in seconds between 'TimeCreated' and the current time.
 
-    # Step 1: Convert TimeCreated string into a datetime object
-    Log To Console    Converting TimeCreated (${time_created}) to UTC datetime.
-    ${time_created_datetime}    Add Time To Date    ${time_created}    0 seconds
-    Log To Console    TimeCreated as Datetime: ${time_created_datetime}
-
-    # Step 2: Get current UTC time
+    # Step 1: Get current UTC time
     ${current_time_utc}    Get Current Date    result_format=%Y-%m-%d %H:%M:%S.%f
-    Log To Console    Current UTC Time: ${current_time_utc}
+    Log    [INFO] Current UTC Time: ${current_time_utc}
 
-    # Step 3: Apply the timezone offset to both times
-    ${server_tz_time_created}    Add Time To Date    ${time_created_datetime}    ${timezone_offset}
-    Log To Console    TimeCreated in Server Timezone (Offset: ${timezone_offset}): ${server_tz_time_created}
-
+    # Step 2: Convert current time to the server timezone
     ${server_tz_current_time}    Add Time To Date    ${current_time_utc}    ${timezone_offset}
-    Log To Console    Current Time in Server Timezone (Offset: ${timezone_offset}): ${server_tz_current_time}
+    Log    [INFO] Current Time in Server Timezone (Offset: ${timezone_offset}): ${server_tz_current_time}
 
-    # Step 4: Calculate the absolute time difference in seconds
-    ${time_difference}    Evaluate    abs((datetime.datetime.strptime('${server_tz_current_time}', '%Y-%m-%d %H:%M:%S.%f') - datetime.datetime.strptime('${server_tz_time_created}', '%Y-%m-%d %H:%M:%S.%f')).total_seconds())
-    Log To Console    Calculated Time Difference: ${time_difference} seconds
+    # Step 3: Calculate the absolute time difference in seconds
+    ${time_difference}    Evaluate    abs((datetime.datetime.strptime('${server_tz_current_time}', '%Y-%m-%d %H:%M:%S.%f') - datetime.datetime.strptime('${time_created}', '%Y-%m-%d %H:%M:%S')).total_seconds())
+    Log    [INFO] Calculated Time Difference: ${time_difference} seconds
     RETURN    ${time_difference}
