@@ -2,51 +2,36 @@
 Library           DateTime
 
 *** Variables ***
-${SERVER_TIMEZONE_OFFSET}    -05:00   # Hardcoded offset for America/New_York (EST)
+${SERVER_TIMEZONE_OFFSET}    -05:00   # Timezone Offset (e.g., EST)
 ${TIMECREATED}               2024-11-21 09:26:30    # Hardcoded TimeCreated in UTC format
 
 *** Test Cases ***
 Calculate Time Difference Between TimeCreated and Current Time
-    [Documentation]    Calculate the time difference between a hardcoded 'TimeCreated'
-    ...                and the current time, where the current time is converted to the server timezone.
-
     # Log hardcoded values
-    Log    [INFO] TimeCreated (UTC): ${TIMECREATED}
     Log To Console    TimeCreated (UTC): ${TIMECREATED}
-    Log    [INFO] Server Timezone Offset: ${SERVER_TIMEZONE_OFFSET}
     Log To Console    Server Timezone Offset: ${SERVER_TIMEZONE_OFFSET}
 
     # Calculate the time difference
     ${time_difference}    Calculate Time Difference    ${TIMECREATED}    ${SERVER_TIMEZONE_OFFSET}
 
     # Log the final result
-    Log    [INFO] The time difference between 'TimeCreated' (${TIMECREATED}) and the current time in the server timezone (offset: ${SERVER_TIMEZONE_OFFSET}) is: ${time_difference} seconds.
     Log To Console    The time difference between 'TimeCreated' (${TIMECREATED}) and the current time in the server timezone (offset: ${SERVER_TIMEZONE_OFFSET}) is: ${time_difference} seconds.
 
 *** Keywords ***
 Calculate Time Difference
     [Arguments]    ${time_created}    ${timezone_offset}
-    [Documentation]    Converts the current time to the server timezone and calculates the time difference
-    ...                in seconds between 'TimeCreated' and the current time.
-
     # Step 1: Get current UTC time
     ${current_time_utc}    Get Current Date    result_format=%Y-%m-%d %H:%M:%S
-    Log    [INFO] Current UTC Time: ${current_time_utc}
     Log To Console    Current UTC Time: ${current_time_utc}
 
     # Step 2: Parse the timezone offset
     ${offset_hours}    Evaluate    int('${timezone_offset}'.split(':')[0])
     ${offset_minutes}  Evaluate    int('${timezone_offset}'.split(':')[1])
-    Log    [INFO] Parsed Offset Hours: ${offset_hours}, Minutes: ${offset_minutes}
-    Log To Console    Parsed Offset Hours: ${offset_hours}, Minutes: ${offset_minutes}
 
     # Step 3: Convert current time to the server timezone
     ${server_tz_current_time}    Evaluate    datetime.datetime.strptime('${current_time_utc}', '%Y-%m-%d %H:%M:%S') + datetime.timedelta(hours=${offset_hours}, minutes=${offset_minutes})
-    Log    [INFO] Current Time in Server Timezone (Offset: ${timezone_offset}): ${server_tz_current_time}
     Log To Console    Current Time in Server Timezone (Offset: ${timezone_offset}): ${server_tz_current_time}
 
     # Step 4: Calculate the absolute time difference in seconds
     ${time_difference}    Evaluate    abs((datetime.datetime.strptime('${server_tz_current_time}', '%Y-%m-%d %H:%M:%S') - datetime.datetime.strptime('${time_created}', '%Y-%m-%d %H:%M:%S')).total_seconds())
-    Log    [INFO] Calculated Time Difference: ${time_difference} seconds
-    Log To Console    Calculated Time Difference: ${time_difference} seconds
     RETURN    ${time_difference}
