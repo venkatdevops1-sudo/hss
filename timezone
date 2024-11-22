@@ -11,14 +11,15 @@ Convert Current Time To Server Timezone And Calculate Difference
     [Documentation]    Converts the current time to the server timezone
     ...                and calculates the difference between 'TimeCreated' and the current time.
 
-    # Step 1: Define the server name
+    # Step 1: Debug SERVER_TIMEZONES
+    Log    [DEBUG] Value of SERVER_TIMEZONES: ${SERVER_TIMEZONES}
+    ${type_of_server_timezones}    Evaluate    type(${SERVER_TIMEZONES}).__name__
+    Log    [DEBUG] Type of SERVER_TIMEZONES: ${type_of_server_timezones}
+    Should Be Equal As Strings    ${type_of_server_timezones}    dict    SERVER_TIMEZONES is not a dictionary!
+
+    # Step 2: Define the server name
     ${server_name}     Set Variable    GBW20135385
     Log    [DEBUG] Server Name: ${server_name}
-
-    # Step 2: Verify SERVER_TIMEZONES is a dictionary (manually debug log)
-    Log    [DEBUG] SERVER_TIMEZONES Content: ${SERVER_TIMEZONES}
-    ${is_dict}    Evaluate    isinstance(${SERVER_TIMEZONES}, dict)
-    Run Keyword Unless    ${is_dict}    Fail    SERVER_TIMEZONES is not a dictionary!
 
     # Step 3: Get the timezone of the server
     ${server_timezone}    Get From Dictionary    ${SERVER_TIMEZONES}    ${server_name}
