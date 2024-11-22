@@ -1,5 +1,6 @@
 *** Settings ***
 Library           DateTime
+Library           Collections
 
 *** Variables ***
 ${SERVER_TIMEZONE_OFFSET}    -5:00   # Hardcoded offset for America/New_York (EST)
@@ -30,17 +31,22 @@ Calculate Time Difference
     ...                in seconds between 'TimeCreated' and the current time.
 
     # Step 1: Get current UTC time
-    ${current_time_utc}    Get Current Date    result_format=%Y-%m-%d %H:%M:%S.%f
+    ${current_time_utc}    Get Current Date    result_format=%Y-%m-%d %H:%M:%S
     Log    [INFO] Current UTC Time: ${current_time_utc}
     Log To Console    Current UTC Time: ${current_time_utc}
 
-    # Step 2: Convert current time to the server timezone
-    ${server_tz_current_time}    Add Time To Date    ${current_time_utc}    ${timezone_offset}
+    # Step 2: Convert timezone offset to hours and minutes
+    ${offset_parts}    Split String    ${timezone_offset}    :
+    ${offset_hours}    Convert To Integer    ${offset_parts[0]}
+    ${offset_minutes}    Convert To Integer    ${offset_parts[1]}
+
+    # Step 3: Apply the timezone offset to the current time
+    ${server_tz_current_time}    Evaluate    datetime.datetime.strptime('${current_time_utc}', '%Y-%m-%d %H:%M:%S') + datetime.timedelta(hours=${offset_hours}, minutes=${offset_minutes})
     Log    [INFO] Current Time in Server Timezone (Offset: ${timezone_offset}): ${server_tz_current_time}
     Log To Console    Current Time in Server Timezone (Offset: ${timezone_offset}): ${server_tz_current_time}
 
-    # Step 3: Calculate the absolute time difference in seconds
-    ${time_difference}    Evaluate    abs((datetime.datetime.strptime('${server_tz_current_time}', '%Y-%m-%d %H:%M:%S.%f') - datetime.datetime.strptime('${time_created}', '%Y-%m-%d %H:%M:%S')).total_seconds())
+    # Step 4: Calculate the absolute time difference in seconds
+    ${time_difference}    Evaluate    abs((datetime.datetime.strptime('${server_tz_current_time}', '%Y-%m-%d %H:%M:%S') - datetime.datetime.strptime('${time_created}', '%Y-%m-%d %H:%M:%S')).total_seconds())
     Log    [INFO] Calculated Time Difference: ${time_difference} seconds
     Log To Console    Calculated Time Difference: ${time_difference} seconds
     RETURN    ${time_difference}
