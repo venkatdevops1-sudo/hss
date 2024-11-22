@@ -1,0 +1,66 @@
+*** Settings ***
+Library           DateTime
+Library           Collections
+
+*** Variables ***
+${SERVER_TIMEZONES}    {"GBW20135385": "America/New_York", "GBW30256412": "Europe/London"}
+${TIMECREATED}         2024-11-21 09:26:30    # Hardcoded TimeCreated in UTC format
+
+*** Test Cases ***
+Convert Current Time To Server Timezone And Calculate Difference
+    [Documentation]    Converts the current time to the server timezone
+    ...                and calculates the difference between 'TimeCreated' and the current time.
+
+    # Step 1: Debug SERVER_TIMEZONES
+    Log    [DEBUG] Raw SERVER_TIMEZONES Value: ${SERVER_TIMEZONES}
+    ${type_of_server_timezones}    Evaluate    type(${SERVER_TIMEZONES}).__name__
+    Log    [DEBUG] Type of SERVER_TIMEZONES: ${type_of_server_timezones}
+
+    # Step 2: Force SERVER_TIMEZONES as a dictionary
+    ${SERVER_TIMEZONES}    Evaluate    {"GBW20135385": "America/New_York", "GBW30256412": "Europe/London"}
+    Log    [DEBUG] Forced SERVER_TIMEZONES Value: ${SERVER_TIMEZONES}
+    ${type_of_server_timezones}    Evaluate    type(${SERVER_TIMEZONES}).__name__
+    Log    [DEBUG] Type of SERVER_TIMEZONES After Forcing: ${type_of_server_timezones}
+    Should Be Equal As Strings    ${type_of_server_timezones}    dict    SERVER_TIMEZONES is not a dictionary!
+
+    # Step 3: Define the server name
+    ${server_name}     Set Variable    GBW20135385
+    Log    [DEBUG] Server Name: ${server_name}
+
+    # Step 4: Get the timezone of the server
+    ${server_timezone}    Get From Dictionary    ${SERVER_TIMEZONES}    ${server_name}
+    Log    [DEBUG] Server Timezone Retrieved: ${server_timezone}
+    Should Not Be Empty    ${server_timezone}    Server timezone not found for the given server name: ${server_name}
+
+    # Step 5: Calculate the time difference
+    ${time_difference}    Calculate Time Difference    ${TIMECREATED}    ${server_timezone}
+    Log    [DEBUG] Calculated Time Difference: ${time_difference} seconds
+
+    # Step 6: Log the final result
+    Log    The time difference between 'TimeCreated' (${TIMECREATED}) and the current time in the server timezone (${server_timezone}) is: ${time_difference} seconds.
+
+*** Keywords ***
+Calculate Time Difference
+    [Arguments]    ${time_created}    ${server_timezone}
+    [Documentation]    Converts 'TimeCreated' to the server timezone and calculates the time difference in seconds.
+
+    # Convert TimeCreated to a datetime object in UTC
+    Log    [DEBUG] Original TimeCreated: ${time_created}
+    ${time_created_datetime}    Convert Date    ${time_created}    result_format=datetime    timezone=UTC
+    Log    [DEBUG] TimeCreated in UTC: ${time_created_datetime}
+
+    # Get current time in UTC
+    ${current_time_utc}    Get Current Date    result_format=datetime    timezone=UTC
+    Log    [DEBUG] Current UTC Time: ${current_time_utc}
+
+    # Convert TimeCreated and current UTC time to the server timezone
+    ${server_tz_time_created}    Convert Date    ${time_created_datetime}    result_format=datetime    timezone=${server_timezone}
+    Log    [DEBUG] TimeCreated in Server Timezone (${server_timezone}): ${server_tz_time_created}
+    
+    ${server_tz_current_time}    Convert Date    ${current_time_utc}    result_format=datetime    timezone=${server_timezone}
+    Log    [DEBUG] Current Time in Server Timezone (${server_timezone}): ${server_tz_current_time}
+
+    # Calculate the absolute time difference in seconds
+    ${time_difference}    Evaluate    abs((${server_tz_current_time} - ${server_tz_time_created}).total_seconds())
+    Log    [DEBUG] Absolute Time Difference in Seconds: ${time_difference}
+    RETURN    ${time_difference}
