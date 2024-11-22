@@ -4,42 +4,40 @@ Library           Collections
 
 *** Variables ***
 ${SERVER_TIMEZONES}    {"GBW20135385": "America/New_York", "GBW30256412": "Europe/London"}
-${TIMECREATED}         2024-11-21 09:26:30    # Hardcoded TimeCreated
+${TIMECREATED}         2024-11-21 09:26:30    # Hardcoded TimeCreated in UTC format
 
 *** Test Cases ***
 Convert Current Time To Server Timezone And Calculate Difference
-    [Documentation]    This test converts the current time to the server timezone
+    [Documentation]    Converts the current time to the server timezone
     ...                and calculates the difference between 'TimeCreated' and the current time.
-    [Tags]             TimezoneConversion
-
-    # Set your server name (replace GBW20135385 with your actual server name)
+    # Step 1: Define the server name
     ${server_name}     Set Variable    GBW20135385
 
-    # Get the timezone of the server
+    # Step 2: Get the timezone of the server
     ${server_timezone}    Get From Dictionary    ${SERVER_TIMEZONES}    ${server_name}
     Should Not Be Empty    ${server_timezone}    Server timezone not found for the given server name: ${server_name}
 
-    # Convert TimeCreated to Server Timezone
+    # Step 3: Calculate the time difference
     ${time_difference}    Calculate Time Difference    ${TIMECREATED}    ${server_timezone}
 
-    # Log the results
+    # Step 4: Log the result
     Log    The time difference between 'TimeCreated' (${TIMECREATED}) and the current time in the server timezone (${server_timezone}) is: ${time_difference} seconds.
 
 *** Keywords ***
 Calculate Time Difference
     [Arguments]    ${time_created}    ${server_timezone}
-    [Documentation]    Converts 'TimeCreated' to the server's timezone and calculates the time difference in seconds.
+    [Documentation]    Converts 'TimeCreated' to the server timezone and calculates the time difference in seconds.
 
-    # Convert TimeCreated to datetime object
+    # Convert TimeCreated (hardcoded) to a datetime object in UTC
     ${time_created_datetime}    Convert Date    ${time_created}    result_format=datetime    timezone=UTC
 
     # Get current time in UTC
     ${current_time_utc}    Get Current Date    result_format=datetime    timezone=UTC
 
-    # Convert to server timezone
+    # Convert TimeCreated and current UTC time to the server timezone
     ${server_tz_time_created}    Convert Date    ${time_created_datetime}    result_format=datetime    timezone=${server_timezone}
     ${server_tz_current_time}    Convert Date    ${current_time_utc}    result_format=datetime    timezone=${server_timezone}
 
-    # Calculate time difference
+    # Calculate the absolute time difference in seconds
     ${time_difference}    Evaluate    abs((${server_tz_current_time} - ${server_tz_time_created}).total_seconds())
-    [Return]    ${time_difference}
+    RETURN    ${time_difference}
