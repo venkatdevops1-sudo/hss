@@ -10,14 +10,16 @@ ${TIMECREATED}         2024-11-21 09:26:30    # Hardcoded TimeCreated in UTC for
 Convert Current Time To Server Timezone And Calculate Difference
     [Documentation]    Converts the current time to the server timezone
     ...                and calculates the difference between 'TimeCreated' and the current time.
-    
+
     # Step 1: Define the server name
     ${server_name}     Set Variable    GBW20135385
     Log    [DEBUG] Server Name: ${server_name}
 
-    # Step 2: Verify that SERVER_TIMEZONES is a dictionary
+    # Step 2: Validate SERVER_TIMEZONES manually
     Log    [DEBUG] SERVER_TIMEZONES: ${SERVER_TIMEZONES}
-    Should Be Dictionary    ${SERVER_TIMEZONES}    SERVER_TIMEZONES is not a dictionary!
+    ${is_dict}    Evaluate    isinstance(${SERVER_TIMEZONES}, dict)
+    Run Keyword If    ${is_dict}    Log    [DEBUG] SERVER_TIMEZONES is a valid dictionary.
+    Run Keyword Unless    ${is_dict}    Fail    SERVER_TIMEZONES is not a dictionary!
 
     # Step 3: Get the timezone of the server
     ${server_timezone}    Get From Dictionary    ${SERVER_TIMEZONES}    ${server_name}
