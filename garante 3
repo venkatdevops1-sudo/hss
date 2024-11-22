@@ -1,9 +1,8 @@
 *** Settings ***
 Library           DateTime
-Library           Collections
 
 *** Variables ***
-${SERVER_TIMEZONE_OFFSET}    -5:00   # Hardcoded offset for America/New_York (EST)
+${SERVER_TIMEZONE_OFFSET}    -05:00   # Hardcoded offset for America/New_York (EST)
 ${TIMECREATED}               2024-11-21 09:26:30    # Hardcoded TimeCreated in UTC format
 
 *** Test Cases ***
@@ -35,12 +34,13 @@ Calculate Time Difference
     Log    [INFO] Current UTC Time: ${current_time_utc}
     Log To Console    Current UTC Time: ${current_time_utc}
 
-    # Step 2: Convert timezone offset to hours and minutes
-    ${offset_parts}    Split String    ${timezone_offset}    :
-    ${offset_hours}    Convert To Integer    ${offset_parts[0]}
-    ${offset_minutes}    Convert To Integer    ${offset_parts[1]}
+    # Step 2: Parse the timezone offset
+    ${offset_hours}    Evaluate    int('${timezone_offset}'.split(':')[0])
+    ${offset_minutes}  Evaluate    int('${timezone_offset}'.split(':')[1])
+    Log    [INFO] Parsed Offset Hours: ${offset_hours}, Minutes: ${offset_minutes}
+    Log To Console    Parsed Offset Hours: ${offset_hours}, Minutes: ${offset_minutes}
 
-    # Step 3: Apply the timezone offset to the current time
+    # Step 3: Convert current time to the server timezone
     ${server_tz_current_time}    Evaluate    datetime.datetime.strptime('${current_time_utc}', '%Y-%m-%d %H:%M:%S') + datetime.timedelta(hours=${offset_hours}, minutes=${offset_minutes})
     Log    [INFO] Current Time in Server Timezone (Offset: ${timezone_offset}): ${server_tz_current_time}
     Log To Console    Current Time in Server Timezone (Offset: ${timezone_offset}): ${server_tz_current_time}
