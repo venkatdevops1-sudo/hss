@@ -43,6 +43,6 @@ Calculate Time Difference
     Log    [DEBUG] Current Time in Server Timezone (Offset: ${timezone_offset}): ${server_tz_current_time}
 
     # Step 4: Calculate the absolute time difference in seconds
-    ${time_difference}    Evaluate    abs((${server_tz_current_time} - ${server_tz_time_created}).total_seconds())
+    ${time_difference}    Evaluate    abs((datetime.datetime.strptime('${server_tz_current_time}', '%Y-%m-%d %H:%M:%S') - datetime.datetime.strptime('${server_tz_time_created}', '%Y-%m-%d %H:%M:%S')).total_seconds())
     Log    [DEBUG] Calculated Time Difference: ${time_difference} seconds
     RETURN    ${time_difference}
