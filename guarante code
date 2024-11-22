@@ -1,0 +1,40 @@
+*** Settings ***
+Library           DateTime
+
+*** Variables ***
+${SERVER_TIMEZONE}    America/New_York    # Hardcoded server timezone
+${TIMECREATED}        2024-11-21 09:26:30    # Hardcoded TimeCreated in UTC format
+
+*** Test Cases ***
+Calculate Time Difference Between TimeCreated and Current Time
+    [Documentation]    Calculate the time difference between a hardcoded 'TimeCreated'
+    ...                and the current time in a hardcoded server timezone.
+
+    # Log hardcoded values
+    Log    TimeCreated (UTC): ${TIMECREATED}
+    Log    Server Timezone: ${SERVER_TIMEZONE}
+
+    # Calculate the time difference
+    ${time_difference}    Calculate Time Difference    ${TIMECREATED}    ${SERVER_TIMEZONE}
+
+    # Log the final result
+    Log    The time difference between 'TimeCreated' (${TIMECREATED}) and the current time in the server timezone (${SERVER_TIMEZONE}) is: ${time_difference} seconds.
+
+*** Keywords ***
+Calculate Time Difference
+    [Arguments]    ${time_created}    ${server_timezone}
+    [Documentation]    Converts 'TimeCreated' to the server timezone and calculates the time difference in seconds.
+
+    # Parse TimeCreated into a datetime object
+    ${time_created_datetime}    Parse Date    ${time_created}    result_format=%Y-%m-%d %H:%M:%S
+
+    # Get current UTC time
+    ${current_time_utc}    Get Current Date
+
+    # Convert TimeCreated and Current Time to the Server Timezone
+    ${server_tz_time_created}    Convert Timezone    ${time_created_datetime}    from_zone=UTC    to_zone=${server_timezone}
+    ${server_tz_current_time}    Convert Timezone    ${current_time_utc}    from_zone=UTC    to_zone=${server_timezone}
+
+    # Calculate the absolute time difference in seconds
+    ${time_difference}    Evaluate    abs((${server_tz_current_time} - ${server_tz_time_created}).total_seconds())
+    RETURN    ${time_difference}
