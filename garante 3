@@ -2,28 +2,29 @@
 Library           DateTime
 
 *** Variables ***
-${SERVER_TIMEZONE}    America/New_York    # Hardcoded server timezone
-${TIMECREATED}        2024-11-21 09:26:30    # Hardcoded TimeCreated in UTC format
+${SERVER_TIMEZONE_OFFSET}    -5:00   # Hardcoded offset for America/New_York (EST)
+${TIMECREATED}               2024-11-21 09:26:30    # Hardcoded TimeCreated in UTC format
 
 *** Test Cases ***
 Calculate Time Difference Between TimeCreated and Current Time
     [Documentation]    Calculate the time difference between a hardcoded 'TimeCreated'
-    ...                and the current time in a hardcoded server timezone.
+    ...                and the current time with a hardcoded timezone offset.
 
     # Log hardcoded values
     Log    [DEBUG] TimeCreated (UTC): ${TIMECREATED}
-    Log    [DEBUG] Server Timezone: ${SERVER_TIMEZONE}
+    Log    [DEBUG] Server Timezone Offset: ${SERVER_TIMEZONE_OFFSET}
 
     # Calculate the time difference
-    ${time_difference}    Calculate Time Difference    ${TIMECREATED}    ${SERVER_TIMEZONE}
+    ${time_difference}    Calculate Time Difference    ${TIMECREATED}    ${SERVER_TIMEZONE_OFFSET}
 
     # Log the final result
-    Log    The time difference between 'TimeCreated' (${TIMECREATED}) and the current time in the server timezone (${SERVER_TIMEZONE}) is: ${time_difference} seconds.
+    Log    The time difference between 'TimeCreated' (${TIMECREATED}) and the current time in the server timezone (offset: ${SERVER_TIMEZONE_OFFSET}) is: ${time_difference} seconds.
 
 *** Keywords ***
 Calculate Time Difference
-    [Arguments]    ${time_created}    ${server_timezone}
-    [Documentation]    Converts 'TimeCreated' to the server timezone and calculates the time difference in seconds.
+    [Arguments]    ${time_created}    ${timezone_offset}
+    [Documentation]    Converts 'TimeCreated' to the server timezone using a fixed offset
+    ...                and calculates the time difference in seconds.
 
     # Step 1: Convert TimeCreated string into a datetime object
     Log    [DEBUG] Converting TimeCreated to UTC datetime: ${time_created}
@@ -34,12 +35,12 @@ Calculate Time Difference
     ${current_time_utc}    Get Current Date
     Log    [DEBUG] Current UTC Time: ${current_time_utc}
 
-    # Step 3: Convert TimeCreated and Current Time to the Server Timezone
-    ${server_tz_time_created}    Convert Timezone    ${time_created_datetime}    from_zone=UTC    to_zone=${server_timezone}
-    Log    [DEBUG] TimeCreated in Server Timezone (${server_timezone}): ${server_tz_time_created}
+    # Step 3: Apply the timezone offset to both times
+    ${server_tz_time_created}    Add Time To Date    ${time_created_datetime}    ${timezone_offset}
+    Log    [DEBUG] TimeCreated in Server Timezone (Offset: ${timezone_offset}): ${server_tz_time_created}
 
-    ${server_tz_current_time}    Convert Timezone    ${current_time_utc}    from_zone=UTC    to_zone=${server_timezone}
-    Log    [DEBUG] Current Time in Server Timezone (${server_timezone}): ${server_tz_current_time}
+    ${server_tz_current_time}    Add Time To Date    ${current_time_utc}    ${timezone_offset}
+    Log    [DEBUG] Current Time in Server Timezone (Offset: ${timezone_offset}): ${server_tz_current_time}
 
     # Step 4: Calculate the absolute time difference in seconds
     ${time_difference}    Evaluate    abs((${server_tz_current_time} - ${server_tz_time_created}).total_seconds())
