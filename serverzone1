@@ -1,0 +1,73 @@
+ServerPrefix,TimezoneOffset
+GBW,-04:30
+HKW,+08:00
+CNW,+05:30
+NLW,-05:00
+
+server_timezones.csv
+
+
+
+
+
+
+*** Settings ***
+Library    DateTime
+Library    OperatingSystem
+
+*** Variables ***
+${TIMEZONE_FILE}    server_timezones.csv  # Path to your mapping file
+
+*** Test Cases ***
+Calculate Time Difference Based on Server Name
+    # Step 1: Prompt user for server name
+    ${server_name}    Input    Enter the server name (e.g., GBW25018108):
+    
+    # Step 2: Extract server prefix from server name
+    ${server_prefix}    Evaluate    '${server_name}'[:3]  # First 3 characters of server name
+    Log To Console    Server Prefix: ${server_prefix}
+    
+    # Step 3: Get the timezone offset from the file
+    ${server_timezone_offset}    Get Timezone Offset    ${server_prefix}    ${TIMEZONE_FILE}
+    Log To Console    Server Timezone Offset: ${server_timezone_offset}
+
+    # Step 4: Set TimeCreated (hardcoded for this example)
+    ${time_created}    Set Variable    2024-11-21 09:26:30
+    Log To Console    TimeCreated (UTC): ${time_created}
+
+    # Step 5: Calculate time difference
+    ${time_difference}    Calculate Time Difference    ${time_created}    ${server_timezone_offset}
+    Log To Console    The time difference is: ${time_difference} seconds.
+
+*** Keywords ***
+Get Timezone Offset
+    [Arguments]    ${server_prefix}    ${file_path}
+    # Open the file and find the matching prefix
+    ${file_content}    Get File    ${file_path}
+    ${lines}    Split String    ${file_content}    \n
+    :FOR    ${line}    IN    @{lines}
+    \    ${columns}    Split String    ${line}    ,
+    \    ${prefix}    Strip String    ${columns[0]}
+    \    ${offset}    Strip String    ${columns[1]}
+    \    Run Keyword If    '${prefix}' == '${server_prefix}'    RETURN    ${offset}
+    Fail    Server prefix '${server_prefix}' not found in the file.
+
+Calculate Time Difference
+    [Arguments]    ${time_created}    ${timezone_offset}
+    # Step 1: Get current UTC time
+    ${current_time_utc}    Get Current Date    result_format=%Y-%m-%d %H:%M:%S
+    Log To Console    Current UTC Time: ${current_time_utc}
+
+    # Step 2: Parse the timezone offset
+    ${offset_hours}    Evaluate    int('${timezone_offset}'.split(':')[0])
+    ${offset_minutes}  Evaluate    int('${timezone_offset}'.split(':')[1])
+
+    # Step 3: Convert current time to the server timezone
+    ${server_tz_current_time}    Evaluate    datetime.datetime.strptime('${current_time_utc}', '%Y-%m-%d %H:%M:%S') + datetime.timedelta(hours=${offset_hours}, minutes=${offset_minutes})
+    Log To Console    Current Time in Server Timezone (Offset: ${timezone_offset}): ${server_tz_current_time}
+
+    # Step 4: Calculate the absolute time difference in seconds
+    ${time_difference}    Evaluate    abs((datetime.datetime.strptime('${server_tz_current_time}', '%Y-%m-%d %H:%M:%S') - datetime.datetime.strptime('${time_created}', '%Y-%m-%d %H:%M:%S')).total_seconds())
+    RETURN    ${time_difference}
+
+
