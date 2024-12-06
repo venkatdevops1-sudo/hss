@@ -1,0 +1,62 @@
+*** Settings ***
+Library    DateTime
+Library    OperatingSystem
+Library    BuiltIn
+
+*** Variables ***
+${TIMECREATED}               2024-11-21 09:26:30  # Hardcoded TimeCreated in UTC format
+${TIMEZONE_MAPPING_FILE}     timezone_mapping.txt  # File containing timezone mappings
+
+*** Test Cases ***
+Calculate Time Difference Based on Server Name
+    [Documentation]    Test case to calculate time difference using server name to derive the timezone offset.
+    [Arguments]        ${SERVER_NAME}
+    Log To Console    Server Name: ${SERVER_NAME}
+
+    ${SERVER_TIMEZONE_OFFSET}    Get Timezone Offset    ${SERVER_NAME}    ${TIMEZONE_MAPPING_FILE}
+    Log To Console    Derived Timezone Offset: ${SERVER_TIMEZONE_OFFSET}
+
+    ${time_difference}    Calculate Time Difference    ${TIMECREATED}    ${SERVER_TIMEZONE_OFFSET}
+
+    Log To Console    The time difference between 'TimeCreated' (${TIMECREATED}) and the current time in the server timezone (offset: ${SERVER_TIMEZONE_OFFSET}) is: ${time_difference} seconds.
+
+*** Keywords ***
+Get Timezone Offset
+    [Arguments]    ${server_name}    ${file_path}
+    # Step 1: Extract the first three letters of the server name
+    ${prefix}    Evaluate    '${server_name}'[:3]
+    Log To Console    Server Prefix: ${prefix}
+
+    # Step 2: Read the file containing timezone mappings
+    ${file_content}    Get File    ${file_path}
+
+    # Step 3: Search for the prefix in the file and extract the offset
+    ${lines}    Split String    ${file_content}    \n
+    ${timezone_offset}    Set Variable    None
+    :FOR    ${line}    IN    @{lines}
+    \    ${line_parts}    Split String    ${line}    ,
+    \    ${line_prefix}    Set Variable    ${line_parts[0]}
+    \    ${line_offset}    Set Variable    ${line_parts[1]}
+    \    Run Keyword If    '${line_prefix}' == '${prefix}'    Set Variable    ${timezone_offset}    ${line_offset}
+    \    Exit For Loop If    '${line_prefix}' == '${prefix}'
+    END
+    Run Keyword If    '${timezone_offset}' == 'None'    Fail    Could not find timezone offset for prefix: ${prefix}
+    [Return]    ${timezone_offset}
+
+Calculate Time Difference
+    [Arguments]    ${time_created}    ${timezone_offset}
+    # Step 1: Get current UTC time
+    ${current_time_utc}    Get Current Date    result_format=%Y-%m-%d %H:%M:%S
+    Log To Console    Current UTC Time: ${current_time_utc}
+
+    # Step 2: Parse the timezone offset
+    ${offset_hours}    Evaluate    int('${timezone_offset}'.split(':')[0])
+    ${offset_minutes}  Evaluate    int('${timezone_offset}'.split(':')[1])
+
+    # Step 3: Convert current time to the server timezone
+    ${server_tz_current_time}    Evaluate    (datetime.datetime.strptime('${current_time_utc}', '%Y-%m-%d %H:%M:%S') + datetime.timedelta(hours=${offset_hours}, minutes=${offset_minutes})).strftime('%Y-%m-%d %H:%M:%S')
+    Log To Console    Current Time in Server Timezone (Offset: ${timezone_offset}): ${server_tz_current_time}
+
+    # Step 4: Calculate the absolute time difference in seconds
+    ${time_difference}    Evaluate    abs((datetime.datetime.strptime('${server_tz_current_time}', '%Y-%m-%d %H:%M:%S') - datetime.datetime.strptime('${time_created}', '%Y-%m-%d %H:%M:%S')).total_seconds())
+    [Return]    ${time_difference}
